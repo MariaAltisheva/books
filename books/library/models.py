@@ -46,7 +46,7 @@ class Reader(BaseModel):
 
     first_name = models.CharField(verbose_name='имя читателя', max_length=100)
     last_name = models.CharField(verbose_name='фамилия читателя', max_length=100)
-    phone_number = models.CharField(verbose_name='телефон читателя', max_length=15)
+    phone_number = models.CharField(verbose_name='телефон читателя', max_length=20, null=True, blank=False)
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.is_active)
     active_books = models.ManyToManyField(Book,max_length=3)
 
