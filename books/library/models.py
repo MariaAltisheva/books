@@ -29,7 +29,6 @@ class Book(BaseModel):
     quantity = models.PositiveIntegerField(default=0)
     total_page = models.PositiveIntegerField()
 
-
     def __str__(self):
         return self.title
 
@@ -49,7 +48,21 @@ class Reader(BaseModel):
     phone_number = models.CharField(verbose_name='телефон читателя', max_length=20, null=True, blank=False)
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.is_active)
     active_books = models.ManyToManyField(Book,max_length=3)
-
+    groups = models.ManyToManyField(
+        'auth.Group',
+        related_name='myuser_set',
+        blank=True,
+        help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.',
+        verbose_name='groups',
+    )
+    # связь с правами доступа, используем свойство related_name, чтобы избежать конфликтов
+    user_permissions = models.ManyToManyField(
+        'auth.Permission',
+        related_name='myuser_set',
+        blank=True,
+        help_text='Specific permissions for this user.',
+        verbose_name='user permissions',
+    )
 
     def __str__(self):
         return f'{self.first_name}, {self.last_name}'
@@ -57,7 +70,6 @@ class Reader(BaseModel):
     class Meta:
         verbose_name = 'Читатель'
         verbose_name_plural = 'Читатели'
-
 
 
 

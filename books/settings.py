@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'books.library',
     'rest_framework',
     'drf_spectacular',
+    'django_filters'
 
 ]
 

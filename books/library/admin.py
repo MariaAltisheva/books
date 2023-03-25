@@ -1,37 +1,58 @@
-from django.contrib import admin
-from django.contrib.admin import register
-from django.shortcuts import redirect
-from django.urls import reverse
 from books.library.models import Author, Book, Reader
-from django.core.exceptions import ValidationError
-from django.contrib import messages
-admin.site.register(Author)
-# admin.site.register(Reader)
+from django.contrib import admin
+from django.urls import reverse
+from django.utils.html import format_html
+
+class AuthorAdmin(admin.ModelAdmin):
+    list_display = ('first_name', 'last_name', 'photo', 'create_data', 'edit_data')
+    list_filter = ('create_data', 'edit_data')
 
 
-
-def url_to_edit_object(obj):
-  url = reverse('admin:%s_%s_change' % (obj._meta.app_label,  obj._meta.model_name),  args=[obj.id] )
-  return u'<a href="%s">Edit %s</a>' % (url,  obj.__unicode__())
-# def url_to_edit_object(obj):
-#     url = reverse('admin:%s_%s_change' % (obj._meta.app_label, obj._meta.model_name), args=[obj.id])
-#     return u'<a href="%s">Edit %s</a>' % (url, obj)
-
-@register(Book)
 class BookAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'author', 'quantity')
-    search_fields = ('title', 'description')
+    list_display = (
+        'author', 'title', 'description', 'quantity', 'total_page', 'create_data', 'edit_data', 'author_link')
+    list_filter = ('author', 'quantity', 'create_data', 'edit_data')
+
+    def author_link(self, obj):
+        url = reverse('admin:library_author_change', args=[obj.author_id])
+        return format_html("<a href='{}'>{}</a>", url, obj.author)
+
+    def make_book_unavailable(self, request, queryset):
+        queryset.update(available_copies=0)
+
+    make_book_unavailable.short_description = "Отметить выбранные книги как недоступные"
+
+    actions = [make_book_unavailable]
 
 
-@admin.register(Reader)
 class ReaderAdmin(admin.ModelAdmin):
-    def save_model(self, request, obj, form, change):
-        if len(form.cleaned_data["active_books"]) > 3:
-            from django.contrib import messages
-            messages.add_message(request, messages.INFO,'Maximum count books to save must 3')
-            raise ValidationError('Maximum count books to save must 3')
-        else:
-            super().save_model(request, obj, form, change)
+    list_display = ('last_name', 'first_name', 'phone_number', 'status', 'edit_data')
+    list_filter = ('status', 'edit_data')
+    list_display_links = ('phone_number',)
+
+    def make_active(self, request, queryset):
+        queryset.update(status=True)
+
+    make_active.short_description = "Активировать выбранных читателей"
+
+    # экшен для изменения статуса неактивности читателя
+    def make_inactive(self, request, queryset):
+        queryset.update(status=False)
+
+    make_inactive.short_description = "Деактивировать выбранных читателей"
+
+    def delete_all_books(self, request, queryset):
+        for obj in queryset:
+            obj.books.clear()
+
+    delete_all_books.short_description = "Удалить все книги у выбранных пользователей"
+
+    actions = [make_active, make_inactive, delete_all_books]
+
+
+admin.site.register(Book, BookAdmin)
+admin.site.register(Author, AuthorAdmin)
+admin.site.register(Reader, ReaderAdmin)
 
 
 

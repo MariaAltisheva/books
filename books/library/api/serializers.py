@@ -23,7 +23,7 @@ class BookSerializer(serializers.ModelSerializer):
             'title',
             'description',
             'quantity',
-            'total_page'
+            'total_page',
         ]
 
 class ReaderSerializer(serializers.ModelSerializer):
