@@ -21,6 +21,7 @@ class Author(BaseModel):
         verbose_name = 'Автор'
         verbose_name_plural = 'Авторы'
         unique_together = ('first_name', 'last_name')
+        # permissions = ('can_some_rules', 'Can some rules')
 
 class Book(BaseModel):
     author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='books')

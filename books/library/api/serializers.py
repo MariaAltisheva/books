@@ -44,6 +44,29 @@ class ReaderSerializer(serializers.ModelSerializer):
         if len(books) > 3:
             raise ValidationError('max count books 3')
 
+    def create(self, validated_data):
+        # validate active books
+        books = validated_data.get("active_books", [])
+        for book in books:
+            if book.count <= 0:
+                raise ValidationError(
+                    "You can't assign books if they are not available"
+                )
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        # validate active books
+        books = validated_data.get("active_books", [])
+        for book in books:
+            if (
+                    book.count <= 0
+                    and not instance.active_books.filter(id=book.id).exists()
+            ):
+                raise ValidationError(
+                    "You can't assign books if they are not available"
+                )
+        return super().update(instance, validated_data)
+
 
     class Meta:
         model= Reader
